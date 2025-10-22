@@ -1,5 +1,4 @@
 [build]
-  publish = "public" # not used if no frontend
   functions = "functions"
 
 [dev]
