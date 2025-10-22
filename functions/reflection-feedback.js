@@ -1,12 +1,27 @@
 import fetch from "node-fetch";
 
 export async function handler(event) {
-  const body = JSON.parse(event.body);
+  // Allow cross-origin requests
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+
+  if (event.httpMethod === "OPTIONS") {
+    // Handle preflight
+    return {
+      statusCode: 204,
+      headers,
+    };
+  }
+
+  const body = JSON.parse(event.body || "{}");
   const { userAnswer, reflectionQuestion, courseSummary } = body;
 
   if (!userAnswer || !reflectionQuestion || !courseSummary) {
     return {
       statusCode: 400,
+      headers,
       body: JSON.stringify({ feedback: "Missing data from client." }),
     };
   }
@@ -24,19 +39,11 @@ export async function handler(event) {
           {
             role: "system",
             content:
-              "You are a warm, supportive eLearning coach. " +
-              "Use the following course summary to guide your evaluation:\n\n" +
+              "You are a warm, supportive eLearning coach. Use the course summary to guide evaluation:\n\n" +
               courseSummary +
-              "\n\n" +
-              "You are evaluating the learner's written reflection to this question: \"" +
+              "\n\nYou are evaluating the learner's reflection: \"" +
               reflectionQuestion +
-              '".\n\n' +
-              "Your task:\n" +
-              "- Give 2–5 sentences of personalized feedback.\n" +
-              "- If the learner’s reflection clearly connects to the question, acknowledge their insight and encourage deeper reflection.\n" +
-              "- If the response seems off-topic, vague, or unrelated, kindly point that out and encourage them to revisit how their answer connects to the question.\n" +
-              "- Always keep a positive, growth-oriented tone.\n" +
-              "- Do not add follow-up questions or extra sections.",
+              '".\nYour task:\n- 2–5 sentences of personalized feedback\n- Positive, growth-oriented tone\n- Point out if response is off-topic',
           },
           { role: "user", content: userAnswer },
         ],
@@ -52,12 +59,14 @@ export async function handler(event) {
 
     return {
       statusCode: 200,
+      headers,
       body: JSON.stringify({ feedback }),
     };
   } catch (error) {
     console.error(error);
     return {
       statusCode: 500,
+      headers,
       body: JSON.stringify({
         feedback: "⚠️ Something went wrong. Please try again later.",
       }),
