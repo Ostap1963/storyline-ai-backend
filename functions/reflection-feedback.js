@@ -1,5 +1,3 @@
-import fetch from "node-fetch";
-
 export async function handler(event) {
   // Allow cross-origin requests
   const headers = {
@@ -8,11 +6,7 @@ export async function handler(event) {
   };
 
   if (event.httpMethod === "OPTIONS") {
-    // Handle preflight
-    return {
-      statusCode: 204,
-      headers,
-    };
+    return { statusCode: 204, headers };
   }
 
   const body = JSON.parse(event.body || "{}");
@@ -57,11 +51,7 @@ export async function handler(event) {
       data.choices?.[0]?.message?.content?.trim() ||
       "Thank you for reflecting! Every experience helps you grow.";
 
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ feedback }),
-    };
+    return { statusCode: 200, headers, body: JSON.stringify({ feedback }) };
   } catch (error) {
     console.error(error);
     return {
